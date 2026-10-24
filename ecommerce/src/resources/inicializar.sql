@@ -1,89 +1,88 @@
-CREATE TABLE public.roles(
-    id UUID UNIQUE NOT NULL,
+DROP TABLE IF EXISTS public.order_items;
+DROP TABLE IF EXISTS public.orders;
+DROP TABLE IF EXISTS public.games;
+DROP TABLE IF EXISTS public.categories;
+DROP TABLE IF EXISTS public.users;
+DROP TABLE IF EXISTS public.status;
+DROP TABLE IF EXISTS public.roles;
+
+CREATE TABLE IF NOT EXISTS public.roles (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(12) UNIQUE NOT NULL,
     description VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
-    CONSTRAINT pk_role PRIMARY KEY(id);
-)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
 
-CREATE TABLE public.users(
-    id UUID UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS public.users (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(40) NOT NULL,
-    email VARCHAR(30) UNIQUE NOT NULL,
-    password VARCHAR(16) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     phone VARCHAR(15) NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
-    role_id UUID NOT NULL,
-    CONSTRAINT pk_user PRIMARY KEY(id),
-    CONSTRAINT fk_user_role FOREIGN KEY(role_id)
-    REFERENCES public.roles(id);
-)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    role_id BIGINT NOT NULL,
+    CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES public.roles(id)
+);
 
-CREATE TABLE public.categories(
-    id UUID UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS public.categories (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(20) UNIQUE NOT NULL,
     description VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
-    CONSTRAINT pk_category PRIMARY KEY(id);
-)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
 
-CREATE TABLE public.games(
-    id UUID UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS public.games (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(30) NOT NULL,
     description VARCHAR(100) NOT NULL,
-    price DECIMAL(7,2) NOT NULL,
-    stock INTEGER NOT NULL
+    price DECIMAL(7, 2) NOT NULL,
+    stock INTEGER NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
-    category_id UUID NOT NULL,
-    CONSTRAINT pk_product PRIMARY KEY(id),
-    CONSTRAINT fk_product_category FOREIGN KEY(category_id)
-    REFERENCES public.categories(id);
-)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    category_id BIGINT NOT NULL,
+    CONSTRAINT fk_game_category FOREIGN KEY (category_id) REFERENCES public.categories(id)
+);
 
-CREATE TABLE public.status(
-    id UUID UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS public.status (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(15) UNIQUE NOT NULL,
     description VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
-    CONSTRAINT pk_status PRIMARY KEY(id);
-)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
 
-CREATE TABLE public.orders(
-    id UUID UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS public.orders (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     quantity INTEGER NOT NULL,
     total DECIMAL(8, 2) NOT NULL,
-    created_at T)IMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
-    user_id UUID NOT NULL,
-    status_id UUID NOT NULL,
-    CONSTRAINT pk_order PRIMARY KEY(id),
-    CONSTRAINT fk_order_user FOREIGN KEY(user_id)
-    REFERENCES public.users(id);
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    user_id BIGINT NOT NULL,
+    status_id BIGINT NOT NULL,
+    CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES public.users(id),
+    CONSTRAINT fk_order_status FOREIGN KEY (status_id) REFERENCES public.status(id)
+);
 
-
-CREATE TABLE public.order_items(
-    id UUID UNIQUE NOT NULL,
+CREATE TABLE IF NOT EXISTS public.order_items (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     quantity INTEGER NOT NULL,
     price DECIMAL(7, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL,
-    order_id UUID NOT NULL,
-    product_id UUID NOT NULL,
-    CONSTRAINT pk_order_item PRIMARY KEY(id),
-    CONSTRAINT fk_order_item_order FOREIGN KEY(order_id)
-    REFERENCES public.orders(id),
-    CONSTRAINT fk_order_item_product FOREIGN KEY(product_id)
-    REFERENCES public.products(id);
-)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    order_id BIGINT NOT NULL,
+    game_id BIGINT NOT NULL,
+    CONSTRAINT fk_order_item_order FOREIGN KEY (order_id) REFERENCES public.orders(id),
+    CONSTRAINT fk_order_item_game FOREIGN KEY (game_id) REFERENCES public.games(id)
+);
 
-
-
-
-
+INSERT INTO public.categories (name, description) VALUES
+    ('Ação', 'Jogos de ação e combate'),
+    ('Aventura', 'Jogos de exploração e aventura'),
+    ('RPG', 'Jogos de interpretação de papéis'),
+    ('Esporte', 'Jogos esportivos'),
+    ('Estratégia', 'Jogos de estratégia e planejamento');

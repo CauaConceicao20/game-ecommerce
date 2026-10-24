@@ -9,8 +9,7 @@ public final class ConexaoBancoDados {
     private static final String USUARIO = "postgres";
     private static final String SENHA = "root";
 
-    private ConexaoBancoDados() {
-    }
+    private ConexaoBancoDados() {}
 
     public static Connection obterConexao() throws SQLException {
         return DriverManager.getConnection(URL, USUARIO, SENHA);

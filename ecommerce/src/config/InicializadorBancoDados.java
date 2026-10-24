@@ -1,35 +1,41 @@
 package config;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 
-public class InicializadorBancoDados {
+public final class InicializadorBancoDados {
+    private InicializadorBancoDados() {
+    }
 
-    public static void executar() throws Exception {
-        InputStream entrada = InicializadorBancoDados.class.getClassLoader()
+    public static void executar() throws IOException, SQLException {
+        InputStream recurso = InicializadorBancoDados.class.getClassLoader()
                 .getResourceAsStream("resources/inicializar.sql");
 
-        if (entrada == null) {
-            throw new RuntimeException("inicializar.sql não encontrado.");
+        if (recurso == null) {
+            throw new IOException("O recurso resources/inicializar.sql não foi encontrado no classpath.");
         }
 
-        String sql = new BufferedReader(new InputStreamReader(entrada))
-                .lines().collect(Collectors.joining("\n")).trim();
-
-        if (sql.isEmpty() || sql.startsWith("--")) {
-            return;
+        String sql;
+        try (InputStream entrada = recurso;
+             BufferedReader leitor = new BufferedReader(new InputStreamReader(entrada, StandardCharsets.UTF_8))) {
+            sql = leitor.lines().collect(Collectors.joining("\n"));
         }
 
         try (Connection conexao = ConexaoBancoDados.obterConexao();
              Statement instrucao = conexao.createStatement()) {
-            instrucao.execute(sql);
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao executar inicializar.sql: " + e.getMessage(), e);
+            for (String comando : sql.split(";")) {
+                String comandoLimpo = comando.trim();
+                if (!comandoLimpo.isEmpty()) {
+                    instrucao.execute(comandoLimpo);
+                }
+            }
         }
     }
 }
